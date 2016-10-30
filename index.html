@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset = "utf-8">
+		<script src = "https://d3js.org/d3.v4.min.js"></script>
+	</head>
+	<body>
+		<script>
+			// Número de nodos
+			var nNodes = 50, createLink = false;
+			
+			// Se crean datos inicialmente vacíos
+			var data = { nodes : [], links : []};
+			
+			var colors = ["#9400B2", "#F1B0FF", "#D300FF", "#66B200", "#92FF00", 
+			              "#76FFC3", "#00B264", "#B21900", "#FF2400", "#FF60A3"];
+			
+			// Se itera para cada nodo
+			for(var k = 0; k < nNodes; k += 1){
+				// Se crean nodos de manera random
+				data.nodes.push({ radius : (Math.random() > 0.3) ? 10 : 20});
+				
+				// Se crean links de manera random
+				for(var j = k + 1; j < nNodes; j += 1){
+					createLink = (Math.random() < 0.2) && (Math.abs(k - j) < 8);
+					
+					if(createLink){
+						data.links.push({
+							source: k,
+							target: j,
+							dist: 2 * Math.abs(k - j) + 45
+						});
+					}
+				}
+			}
+			
+			var width = 1200, height = 600;
+			
+			var force = d3.forceSimulation(data.nodes)
+				.force("link", d3.forceLink(data.links).distance(function(d){ return d.dist; }))
+				.force("center", d3.forceCenter(width / 2, height / 2))
+				.force("charge", d3.forceManyBody().strength(-10));
+			
+			var canvas = d3.select("body")
+				.append("div")
+				.attr("id", "canvas-force")
+				.append("canvas")
+				.attr("width", width + "px")
+				.attr("height", height + "px")
+				.style("background-color", "#CCD6FF")
+				.node();
+				
+			var context = canvas.getContext("2d");
+			context.fillStyle = colors[Math.trunc(Math.random() * 10)];
+							
+			force.on("tick", function(){
+				context.clearRect(0, 0, width, height);
+				context.shadowColor = "#9AC5FF";
+				// color de los links
+				//context.strokeStyle = "#9AC5FF";
+				// color de los nodos
+				//context.fillStyle = "#9AC5FF";
+				
+				data.links.forEach(function(d){
+					context.beginPath();
+					context.moveTo(d.source.x, d.source.y);
+					context.lineTo(d.target.x, d.target.y);
+					context.stroke();
+				});
+				
+				data.nodes.forEach(function(d, i){
+					context.beginPath();
+					context.arc(d.x, d.y, d.radius, 0, 2 * Math.PI, true);
+					context.fill();
+				});
+			});
+		</script>
+	</body>
+</html>
